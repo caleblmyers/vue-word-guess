@@ -10,17 +10,17 @@ function Word(str) {
 }
 
 Word.prototype.update = function () {
-  var wordDisplay = ''
-  this.charArray.forEach(function (char) {
-    wordDisplay += char
-  });
+  let wordDisplay = ""
 
   this.remaining = 0
-  for (let i = 0; i < wordDisplay.length; i++) {
-    if (wordDisplay[i] === "_") {
+  this.charArray.forEach(char => {
+    if (char.isGuessed) wordDisplay += `${char.char} `
+    else {
       this.remaining++
+      wordDisplay += "_ "
     }
-  }
+  });
+
   return wordDisplay
 }
 

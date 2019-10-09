@@ -1,22 +1,15 @@
 <template>
-  <div>
-    <h1>Game</h1>
-    <button class="btn btn-info" v-on:click="startGame">Start!</button>
+  <div v-if="roundActive">
     <div>{{data.name}}</div>
-    <div>{{data.gender}}</div>
-    <div>{{data.culture}}</div>
-    <div>{{data.born}}</div>
-    <div>{{data.died}}</div>
-    <div>{{data.titles}}</div>
-    <div>{{data.aliases}}</div>
-    <div>{{data.father}}</div>
-    <div>{{data.mother}}</div>
-    <div>{{data.spouse}}</div>
-    <div>{{data.allegiances}}</div>
-    <div>{{data.books}}</div>
-    <div>{{data.povBooks}}</div>
-    <div>{{data.tvSeries}}</div>
-    <div>{{data.playedBy}}</div>
+    <div>{{display}}</div>
+    <div>{{guess}}</div>
+    <div>{{err}}</div>
+    <button class="btn btn-danger" v-on:click="reset">Start Over</button>
+  </div>
+  <div v-else>
+    <h1>Game</h1>
+    <div>{{err}}</div>
+    <button class="btn btn-info" v-on:click="startGame">Start!</button>
   </div>
 </template>
 
@@ -29,11 +22,33 @@ export default {
   data() {
     return {
       answer: {},
+      display: ``,
       data: {},
-      err: {}
+      err: {},
+      roundActive: false,
+      guess: ""
     };
   },
+  created() {
+    window.addEventListener("keypress", this.keyPress);
+  },
+  detroyed() {
+    window.removeEventListener("keypress", this.keyPress);
+  },
   methods: {
+    keyPress(e) {
+      if (isNaN(e.key) === true && e.key.toUpperCase() != e.key.toLowerCase()) {
+        this.guess = e.key;
+        console.log(e.key);
+        console.log(this.answer.makeGuess(e.key));
+        console.log(this.answer.update());
+        this.display = this.answer.update();
+      }
+    },
+    reset() {
+      this.roundActive = false;
+      this.display = "";
+    },
     startGame() {
       let randIndex = Math.floor(Math.random() * 2126 + 12);
       if (randIndex === 583) randIndex = Math.floor(Math.random() * 900 + 584);
@@ -41,9 +56,11 @@ export default {
         .get(`https://anapioficeandfire.com/api/characters/${randIndex}`)
         .then(res => {
           this.answer = new Word(res.data.name);
+          this.display = this.answer.update();
           this.data = res.data;
+          this.roundActive = true;
         })
-        .catch(err => (this.err = err));
+        .catch(err => console.log(err));
     }
   }
 };
