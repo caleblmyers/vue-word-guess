@@ -1,39 +1,34 @@
 <template>
-  <div v-if="roundActive">
-    <!-- <div>{{data.name}}</div>
-    <div>{{display}}</div>
-    <div>{{guess}}</div>
-    <div>{{err}}</div>-->
-    <WordComp :name="data.name" />
-    <button class="btn btn-danger mt-5" v-on:click="reset">Start Over</button>
+  <div v-if="data.name">
+    <Word :answer="answer" />
+    <button class="btn btn-danger mt-5" @click="reset">Start Over</button>
   </div>
   <div v-else>
     <h1>Game</h1>
-    <div>{{err}}</div>
-    <button class="btn btn-info" v-on:click="startGame">Start!</button>
+    <div v-if="err">{{err}}</div>
+    <button class="btn btn-info" @click="startGame">Easy: Houses</button>
+    <button class="btn btn-danger" @click="startGame">Hard: All Characters</button>
   </div>
 </template>
 
 <script>
 import { Component, Vue } from "vue-property-decorator";
 import axios from "axios";
-import Word from "../constructors/Word";
-import WordComp from "./Word.vue";
+// import WordType from "@/constructors/Word";
+import Word from "./Word.vue";
 
 @Component({
   name: "Game",
   components: {
-    WordComp
-  },
+    Word
+  }
 })
 export default class Game extends Vue {
-  answer = {}
-  display = ""
-  data = {}
-  err = {}
-  roundActive = false
-  guess = ""
-  lives = 10
+  answer = [];
+  data = {};
+  err;
+  roundActive = false;
+  guess = "";
 
   startGame() {
     let randIndex = Math.floor(Math.random() * 2126 + 12);
@@ -41,10 +36,13 @@ export default class Game extends Vue {
     axios
       .get(`https://anapioficeandfire.com/api/characters/${randIndex}`)
       .then(res => {
-        this.answer = new Word(res.data.name);
-        this.display = this.answer.update();
+        for (const char of res.data.name) {
+          this.answer.push({ char, isGuessed: false });
+        }
+        this.answer.forEach((char, index) => {
+          if (char.char === " ") this.answer[index].isGuessed = true;
+        });
         this.data = res.data;
-        this.roundActive = true;
       })
       .catch(err => {
         this.err = err;
@@ -53,11 +51,12 @@ export default class Game extends Vue {
 
   reset() {
     this.roundActive = false;
-    this.display = "";
+    this.data = {};
+    this.answer = [];
+    this.err = null;
   }
 }
 </script>
 
 <style lang="scss" scoped>
-
 </style>
